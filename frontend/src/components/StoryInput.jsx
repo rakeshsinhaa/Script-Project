@@ -31,15 +31,15 @@ const StoryInput = () => {
     setLoadingScript(true);
     try {
       const res = await axios.post("http://localhost:8000/api/generate-script", { storyline: story });
-      const script = res.data.script;
-      setLoadingScript(false);
-      navigate("/script-viewer", { state: { script } }); // ✅ Pass script to next page
+      const result = res.data.script; // Now an array of { text, image_url }
+      navigate("/script-viewer", { state: { script: result } });
     } catch (err) {
       setError("Error generating script.");
+    } finally {
       setLoadingScript(false);
     }
   };
-
+  
   const download = (text, filename) => {
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
