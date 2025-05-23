@@ -1,23 +1,47 @@
+import os
+import re
+import logging
+import random
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from google.generativeai import configure, GenerativeModel
 from dotenv import load_dotenv
-import os
+from google.generativeai import configure, GenerativeModel
 import uvicorn
-import re
 
-# Load environment variables
+# ----------------------- Logging -----------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+# ----------------------- Load Env -----------------------
 load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY", "AIzaSyDIufFKkAqA-0mouVL-UHxZmthNcO5ZHV4")
+CLOUDFLARE_URL = os.getenv("CLOUDFLARE_URL", "https://script2screen-image-gen.worldforscience.workers.dev")
 
-# Configure Gemini API
-configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = GenerativeModel("gemini-2.0-flash")
+if not api_key:
+    logger.error("❌ GEMINI_API_KEY not found.")
+else:
+    logger.info("✅ GEMINI_API_KEY loaded.")
 
-# Initialize FastAPI app
+if not CLOUDFLARE_URL:
+    logger.error("❌ CLOUDFLARE_URL not found.")
+else:
+    logger.info("✅ CLOUDFLARE_URL loaded.")
+
+# ----------------------- Configure Gemini -----------------------
+try:
+    configure(api_key=api_key)
+    model = GenerativeModel("gemini-2.0-flash")
+    logger.info("✅ Gemini model initialized.")
+except Exception as e:
+    logger.exception(f"❌ Failed to configure Gemini model: {e}")
+
+# ----------------------- FastAPI Setup -----------------------
 app = FastAPI()
-
-# Enable CORS (dev setting, restrict in prod)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,54 +50,114 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-def clean_script_text(text: str) -> str:
-    # Remove Markdown bold/italic and HTML tags
-    text = re.sub(r'\*\*|__|<[^>]+>', '', text)
-
-    # Normalize multiple empty lines
-    text = re.sub(r'\n{3,}', '\n\n', text)
-
-    # Trim leading/trailing whitespace
-    return text.strip()
-
-
-# Request schemas
+# ----------------------- Schemas -----------------------
 class PromptRequest(BaseModel):
     prompt: str
 
 class StoryRequest(BaseModel):
     storyline: str
 
-# Story generation endpoint
+# ----------------------- Utils -----------------------
+def clean_script_text(text: str) -> str:
+    text = re.sub(r'\*\*|__|<[^>]+>', '', text)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
+
+def extract_scene_descriptions(script: str) -> list:
+    scene_pattern = re.compile(r'\*\*(INT\.|EXT\.)[^\*]+\*\*')
+    return scene_pattern.findall(script)
+
+async def generate_image(prompt: str) -> str:
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(CLOUDFLARE_URL, json={"prompt": prompt})
+            response.raise_for_status()
+            data = response.json()
+            image_data = data.get("image_url", "")
+            logger.info(f"Cloudflare response for prompt '{prompt}': {image_data[:100]}...")  # Log first 100 chars
+            # Check if the response is a Base64 string
+            if image_data.startswith("data:image"):
+                return image_data  # Already a Base64 data URI
+            elif image_data:
+                return image_data  # Assume it's a valid URL
+            else:
+                logger.warning("No image data returned from Cloudflare.")
+                return ""
+    except Exception as e:
+        logger.warning(f"⚠️ Image generation failed for prompt '{prompt}': {e}")
+        return ""
+
+async def insert_images_into_script(script: str) -> str:
+    # Match both bold and plain scene headings (e.g., **EXT. OCEAN – DAY** or EXT. OCEAN – DAY)
+    scene_pattern = re.compile(r'(\*\*(INT\.|EXT\.)[^\n\*]+\*\*|(?<!\*)\b(INT\.|EXT\.)[^\n]+)')
+
+    scenes = scene_pattern.findall(script)
+    scene_matches = [match[0] for match in scenes if match[0]]  # Extract full matched strings
+
+    if not scene_matches:
+        logger.warning("⚠️ No scenes found for image generation.")
+        return script
+
+    selected = random.sample(scene_matches, min(5, len(scene_matches)))
+    replacements = {}
+
+    for scene_heading in selected:
+        clean_prompt = re.sub(r'\*\*', '', scene_heading).strip()
+        image_url = await generate_image(clean_prompt)
+        if image_url:
+            # Ensure the image tag is correctly formatted
+            img_tag = f"\n\n![Scene Image]({image_url})\n"
+            replacements[scene_heading] = f"{scene_heading}{img_tag}"
+
+    for heading, replacement in replacements.items():
+        script = script.replace(heading, replacement, 1)
+
+    logger.info(f"Final script with images:\n{script[:200]}...")  # Log first 200 chars
+    return script
+
+# ----------------------- Routes -----------------------
 @app.post("/api/generate-story")
 async def generate_story(data: PromptRequest):
     try:
+        logger.info(f"📩 Received story prompt: {data.prompt[:100]}...")
         response = model.generate_content(data.prompt)
         if not response.text:
             raise HTTPException(status_code=500, detail="Model returned no text.")
         cleaned = clean_script_text(response.text)
         return {"story": cleaned}
     except Exception as e:
+        logger.exception("❌ Error generating story.")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Script generation endpoint
 @app.post("/api/generate-script")
 async def generate_script(data: StoryRequest):
     try:
+        logger.info(f"🎬 Generating script from story: {data.storyline[:100]}...")
+
         prompt = (
-            "Please convert the following story into a fully formatted movie script. The entire script should be left-aligned, with no centered text. Apply bold formatting to all scene headings (such as INT. or EXT.), character names, and transition cues like CUT TO:. Dialogue should appear directly under the bold character name, and everything must remain left-aligned. Use present tense for action and scene descriptions. Organize the script into clearly divided scenes with realistic pacing and natural dialogue. Make sure the script feels polished and complete. Do not include any follow-up questions, suggestions for continuation, or prompts at the end:\n"
+            "Convert the following story into a fully formatted movie script. "
+            "Use left-aligned text only. Bold all scene headings (INT./EXT.), character names, and transitions (e.g., CUT TO:). "
+            "Dialogue must appear under bold character names. Use present tense for descriptions. Keep structure clean and polished:\n"
             f"{data.storyline}"
         )
+
         response = model.generate_content(prompt)
         if not response.text:
             raise HTTPException(status_code=500, detail="Model returned no text.")
-
+        
+        logger.info(f"📝 Raw Gemini script output:\n{response.text}")  # Log raw script
         cleaned = clean_script_text(response.text)
-        return {"script": cleaned}
+        logger.info(f"🧹 Cleaned script:\n{cleaned}")  # Log cleaned script
+
+        final_script = await insert_images_into_script(cleaned)
+        logger.info(f"📜 Final script sent to frontend:\n{final_script[:200]}...")  # Log final script
+        return {"script": final_script}
+
     except Exception as e:
+        logger.exception("❌ Error generating script.")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Uvicorn dev server entry point
+# ----------------------- Run Server -----------------------
 if __name__ == "__main__":
+    logger.info("🚀 Launching FastAPI server on port 8000...")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
