@@ -5,6 +5,7 @@ from google.generativeai import configure, GenerativeModel
 from dotenv import load_dotenv
 import os
 import uvicorn
+import re
 
 # Load environment variables
 load_dotenv()
@@ -25,6 +26,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+def clean_script_text(text: str) -> str:
+    # Remove Markdown bold/italic and HTML tags
+    text = re.sub(r'\*\*|__|<[^>]+>', '', text)
+
+    # Normalize multiple empty lines
+    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    # Trim leading/trailing whitespace
+    return text.strip()
+
+
 # Request schemas
 class PromptRequest(BaseModel):
     prompt: str
@@ -37,7 +50,10 @@ class StoryRequest(BaseModel):
 async def generate_story(data: PromptRequest):
     try:
         response = model.generate_content(data.prompt)
-        return {"story": response.text}
+        if not response.text:
+            raise HTTPException(status_code=500, detail="Model returned no text.")
+        cleaned = clean_script_text(response.text)
+        return {"story": cleaned}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -46,11 +62,15 @@ async def generate_story(data: PromptRequest):
 async def generate_script(data: StoryRequest):
     try:
         prompt = (
-            "Convert this short story into a movie screenplay format with scenes, actions, and dialogues:\n"
+            "Please convert the following story into a fully formatted movie script. The entire script should be left-aligned, with no centered text. Apply bold formatting to all scene headings (such as INT. or EXT.), character names, and transition cues like CUT TO:. Dialogue should appear directly under the bold character name, and everything must remain left-aligned. Use present tense for action and scene descriptions. Organize the script into clearly divided scenes with realistic pacing and natural dialogue. Make sure the script feels polished and complete. Do not include any follow-up questions, suggestions for continuation, or prompts at the end:\n"
             f"{data.storyline}"
         )
         response = model.generate_content(prompt)
-        return {"script": response.text}
+        if not response.text:
+            raise HTTPException(status_code=500, detail="Model returned no text.")
+
+        cleaned = clean_script_text(response.text)
+        return {"script": cleaned}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
