@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const StoryInput = ({ onScriptGenerated }) => {
+const StoryInput = () => {
   const [prompt, setPrompt] = useState("");
   const [story, setStory] = useState("");
-  const [script, setScript] = useState("");
   const [loadingStory, setLoadingStory] = useState(false);
   const [loadingScript, setLoadingScript] = useState(false);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const handleGenerateStory = async () => {
     if (!prompt.trim()) return setError("Enter a prompt to generate story.");
@@ -29,12 +31,11 @@ const StoryInput = ({ onScriptGenerated }) => {
     setLoadingScript(true);
     try {
       const res = await axios.post("http://localhost:8000/api/generate-script", { storyline: story });
-      const result = res.data.script;
-      setScript(result);
-      onScriptGenerated(result); 
+      const script = res.data.script;
+      setLoadingScript(false);
+      navigate("/script-viewer", { state: { script } }); // ✅ Pass script to next page
     } catch (err) {
       setError("Error generating script.");
-    } finally {
       setLoadingScript(false);
     }
   };
@@ -49,7 +50,7 @@ const StoryInput = ({ onScriptGenerated }) => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 p-6 bg-white rounded-2xl shadow-md">
-      <h2 className="text-2xl text-center font-bold"> Generate Story from Prompt</h2>
+      <h2 className="text-2xl text-center font-bold">Generate Story from Prompt</h2>
 
       <textarea
         placeholder="Enter a short idea or theme..."
@@ -89,23 +90,6 @@ const StoryInput = ({ onScriptGenerated }) => {
       </div>
 
       {error && <p className="text-red-500">{error}</p>}
-
-      {script && (
-        <div className="mt-10">
-          <h2 className="text-xl font-bold mb-2"> Generated Script</h2>
-          <textarea
-            className="w-full p-3 h-60 border rounded-md"
-            value={script}
-            readOnly
-          />
-          <button
-            onClick={() => download(script, "script.txt")}
-            className="mt-2 bg-green-600 text-white px-4 py-2 rounded-md"
-          >
-            Download Script
-          </button>
-        </div>
-      )}
     </div>
   );
 };
