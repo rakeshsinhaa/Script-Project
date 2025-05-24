@@ -75,11 +75,10 @@ async def generate_image(prompt: str) -> str:
             data = response.json()
             image_data = data.get("image_url", "")
             logger.info(f"Cloudflare response for prompt '{prompt}': {image_data[:100]}...")  # Log first 100 chars
-            # Check if the response is a Base64 string
             if image_data.startswith("data:image"):
-                return image_data  # Already a Base64 data URI
+                return image_data
             elif image_data:
-                return image_data  # Assume it's a valid URL
+                return image_data
             else:
                 logger.warning("No image data returned from Cloudflare.")
                 return ""
@@ -87,33 +86,44 @@ async def generate_image(prompt: str) -> str:
         logger.warning(f"⚠️ Image generation failed for prompt '{prompt}': {e}")
         return ""
 
-async def insert_images_into_script(script: str) -> str:
-    # Match both bold and plain scene headings (e.g., **EXT. OCEAN – DAY** or EXT. OCEAN – DAY)
+async def insert_images_into_script(script: str) -> list:
+    # Match both bold and plain scene headings
     scene_pattern = re.compile(r'(\*\*(INT\.|EXT\.)[^\n\*]+\*\*|(?<!\*)\b(INT\.|EXT\.)[^\n]+)')
-
     scenes = scene_pattern.findall(script)
-    scene_matches = [match[0] for match in scenes if match[0]]  # Extract full matched strings
+    scene_matches = [match[0] for match in scenes if match[0]]
 
     if not scene_matches:
         logger.warning("⚠️ No scenes found for image generation.")
-        return script
+        # Split script by headers without images
+        scene_regex = re.compile(r'((?:\*\*)?(?:INT\.|EXT\.|CUT TO:|FADE OUT:)[^\n]*(?:\*\*)?)')
+        parts = scene_regex.split(script)[1:]  # Skip first empty part
+        result = []
+        for i in range(0, len(parts), 2):
+            header = parts[i].strip()
+            text = parts[i + 1].strip() if i + 1 < len(parts) else ""
+            result.append({"header": header, "text": text, "image_url": "", "image_prompt": ""})
+        return result
 
     selected = random.sample(scene_matches, min(5, len(scene_matches)))
-    replacements = {}
+    scene_regex = re.compile(r'((?:\*\*)?(?:INT\.|EXT\.|CUT TO:|FADE OUT:)[^\n]*(?:\*\*)?)')
+    parts = scene_regex.split(script)[1:]  # Skip first empty part
+    result = []
 
-    for scene_heading in selected:
-        clean_prompt = re.sub(r'\*\*', '', scene_heading).strip()
-        image_url = await generate_image(clean_prompt)
-        if image_url:
-            # Ensure the image tag is correctly formatted
-            img_tag = f"\n\n![Scene Image]({image_url})\n"
-            replacements[scene_heading] = f"{scene_heading}{img_tag}"
+    image_index = 0
+    for i in range(0, len(parts), 2):
+        header = parts[i].strip()
+        text = parts[i + 1].strip() if i + 1 < len(parts) else ""
+        image_url = ""
+        image_prompt = ""
+        if header in selected:
+            clean_prompt = re.sub(r'\*\*', '', header).strip()
+            image_url = await generate_image(clean_prompt)
+            image_prompt = clean_prompt if image_url else ""
+            image_index += 1
+        result.append({"header": header, "text": text, "image_url": image_url, "image_prompt": image_prompt})
 
-    for heading, replacement in replacements.items():
-        script = script.replace(heading, replacement, 1)
-
-    logger.info(f"Final script with images:\n{script[:200]}...")  # Log first 200 chars
-    return script
+    logger.info(f"Final script with images:\n{result[:2]}...")  # Log first two scenes
+    return result
 
 # ----------------------- Routes -----------------------
 @app.post("/api/generate-story")
@@ -145,12 +155,12 @@ async def generate_script(data: StoryRequest):
         if not response.text:
             raise HTTPException(status_code=500, detail="Model returned no text.")
         
-        logger.info(f"📝 Raw Gemini script output:\n{response.text}")  # Log raw script
+        logger.info(f"📝 Raw Gemini script output:\n{response.text}")
         cleaned = clean_script_text(response.text)
-        logger.info(f"🧹 Cleaned script:\n{cleaned}")  # Log cleaned script
+        logger.info(f"🧹 Cleaned script:\n{cleaned}")
 
         final_script = await insert_images_into_script(cleaned)
-        logger.info(f"📜 Final script sent to frontend:\n{final_script[:200]}...")  # Log final script
+        logger.info(f"📜 Final script sent to frontend:\n{final_script[:2]}...")
         return {"script": final_script}
 
     except Exception as e:
