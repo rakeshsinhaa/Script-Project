@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "./LoadingSpinner";  // <-- ADDED import
 import axios from "axios";
 
 const StoryInput = () => {
@@ -14,32 +15,32 @@ const StoryInput = () => {
   const handleGenerateStory = async () => {
     if (!prompt.trim()) return setError("Enter a prompt to generate story.");
     setError("");
-    setLoadingStory(true);
+    setLoadingStory(true);  // <-- SET loadingStory to true
     try {
       const res = await axios.post("http://localhost:8000/api/generate-story", { prompt });
       setStory(res.data.story);
     } catch (err) {
       setError("Error generating story.");
     } finally {
-      setLoadingStory(false);
+      setLoadingStory(false); // <-- SET loadingStory to false
     }
   };
 
   const handleGenerateScript = async () => {
     if (!story.trim()) return setError("Story cannot be empty.");
     setError("");
-    setLoadingScript(true);
+    setLoadingScript(true);  // <-- SET loadingScript to true
     try {
       const res = await axios.post("http://localhost:8000/api/generate-script", { storyline: story });
-      const result = res.data.script; // Now an array of { text, image_url }
+      const result = res.data.script;
       navigate("/script-viewer", { state: { script: result } });
     } catch (err) {
       setError("Error generating script.");
     } finally {
-      setLoadingScript(false);
+      setLoadingScript(false); // <-- SET loadingScript to false
     }
   };
-  
+
   const download = (text, filename) => {
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
@@ -47,6 +48,10 @@ const StoryInput = () => {
     a.download = filename;
     a.click();
   };
+
+  // <-- ADDED full-page loader while waiting for API
+  if (loadingStory) return <LoadingSpinner message="Generating story..." />;
+  if (loadingScript) return <LoadingSpinner message="Generating script..." />;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 p-6 bg-white rounded-2xl shadow-md">
@@ -60,10 +65,9 @@ const StoryInput = () => {
       />
       <button
         onClick={handleGenerateStory}
-        disabled={loadingStory}
         className="bg-purple-600 text-white px-4 py-2 rounded-md"
       >
-        {loadingStory ? "Generating..." : "Generate Story"}
+        Generate Story
       </button>
 
       <h2 className="text-xl text-center font-bold mt-6">Story</h2>
@@ -82,10 +86,9 @@ const StoryInput = () => {
         </button>
         <button
           onClick={handleGenerateScript}
-          disabled={loadingScript}
           className="bg-blue-600 text-white px-4 py-2 rounded-md"
         >
-          {loadingScript ? "Generating Script..." : "Generate Script"}
+          Generate Script
         </button>
       </div>
 
