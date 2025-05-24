@@ -179,7 +179,7 @@ const ScriptViewer = () => {
           </div>
         ))
       ) : (
-        <div className="whitespace-pre-wrap p-4 border border-gray-300 rounded-md font-mono bg-gray-50 text-sm">
+        <div className="whitespace-pre-wrap p-4 border border-gray-300 rounded-md font-serif bg-gray-50 text-sm">
           {script}
         </div>
       )}
