@@ -1,0 +1,12 @@
+name = "script2screen-image-gen"
+main = "src/index.mjs"
+compatibility_date = "2024-03-31"
+type = "module"
+
+[ai]
+binding = "AI"
+
+[vars]
+AI_BINDING = "AI"
+WORKER_API_KEY = "ifgaWgsqBflwNhJagQm-d5Az2rVgs7vwp3fqPDnZ"
+WORKER_ACCOUNT_ID = "7bf166e8c781150df35efdf7732fd3f7"

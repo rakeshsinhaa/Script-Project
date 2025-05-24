@@ -2,3 +2,4 @@ fastapi
 python-dotenv
 google-generativeai
 uvicorn
+httpx
