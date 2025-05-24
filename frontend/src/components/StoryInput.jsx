@@ -56,7 +56,7 @@ const StoryInput = () => {
         placeholder="Enter a short idea or theme..."
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        className="w-full p-3 border rounded-md"
+        className="w-full h-48 p-4 border border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10"
       />
       <button
         onClick={handleGenerateStory}
@@ -70,7 +70,7 @@ const StoryInput = () => {
       <textarea
         value={story}
         onChange={(e) => setStory(e.target.value)}
-        className="w-full p-3 h-40 border rounded-md"
+        className="w-full h-48 p-4 border border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10"
         placeholder="Or write your own story here..."
       />
       <div className="flex gap-4 mt-2">
