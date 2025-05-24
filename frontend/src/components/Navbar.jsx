@@ -1,66 +1,60 @@
-import React from 'react'
-import { Link } from "react-router-dom";
-// import { motion } from "motion/react"
-import { motion, useAnimation } from "framer-motion";
-import { useEffect, useRef } from "react";
-import { useScroll } from "framer-motion"
-
-
+import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, useAnimation } from 'framer-motion';
 
 const Navbar = () => {
-
   const controls = useAnimation();
   const lastScrollY = useRef(0);
+  const isHidden = useRef(false);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      if (currentScrollY > lastScrollY.current && currentScrollY > 10) {
-        // Scroll down: hide navbar
-        controls.start({ y: "-100%", transition: { duration: 0.1 } });
-      } else if (currentScrollY < lastScrollY.current) {
-        // Scroll up: show navbar
-        controls.start({ y: "0%", transition: { duration: 0.1 } });
+      if (currentScrollY > lastScrollY.current && !isHidden.current && currentScrollY > 10) {
+        // Scroll down → hide
+        controls.start({ y: "-120%", transition: { duration: 0.3 } });
+        isHidden.current = true;
+      } else if (currentScrollY < lastScrollY.current && isHidden.current) {
+        // Scroll up → show
+        controls.start({ y: "1.5rem", transition: { duration: 0.3 } });
+        isHidden.current = false;
       }
 
       lastScrollY.current = currentScrollY;
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [controls]);
 
   return (
-    <motion.nav 
+    <motion.nav
       animate={controls}
-      initial={{ y: "0%" }}
-      className=" fixed left-1/2 transform -translate-x-1/2 top-6 z-50 bg-purple-700 text-white px-6 py-4 rounded-3xl shadow-lg w-[90%] max-w-2xl text-center">
+      initial={{ y: "1.5rem" }}
+      className="fixed left-1/2 -translate-x-1/2 top-0 z-50 bg-purple-700 text-white px-6 py-4 rounded-3xl shadow-lg w-[90%] max-w-2xl"
+    >
       <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center">
-            <img
-              src="https://www.svgrepo.com/show/306805/storybook.svg"
-              alt="Logo"
-              className="w-8 h-8 invert"
-            />
-            <span className="text-2xl font-bold">toryScript</span>
-          </Link>
-        </div>
+        <Link to="/" className="flex items-center space-x-2">
+          <img
+            src="https://www.svgrepo.com/show/306805/storybook.svg"
+            alt="Logo"
+            className="w-8 h-8 invert"
+          />
+          <span className="text-2xl font-bold">toryScript</span>
+        </Link>
 
-        <div className="flex ">
+        <div className="flex space-x-4">
           <Link to="/" className="px-4 py-2 rounded-3xl font-bold hover:bg-white/20">
             Home
           </Link>
-          <Link to="/ScriptViewer" className="px-4 py-2 rounded-3xl font-bold hover:bg-white/30">
+          <Link to="/script-viewer" className="px-4 py-2 rounded-3xl font-bold hover:bg-white/30">
             View Script
           </Link>
         </div>
-
       </div>
     </motion.nav>
   );
 };
 
 export default Navbar;
-

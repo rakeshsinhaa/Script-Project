@@ -72,7 +72,7 @@ def extract_scene_descriptions(script: str) -> list:
     scene_pattern = re.compile(r'\*\*(INT\.|EXT\.)[^\*]+\*\*')
     return scene_pattern.findall(script)
 
-async def generate_image(prompt: str, size: str = "1520x1080") -> str:
+async def generate_image(prompt: str, size: str = "1220x1080") -> str:
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(CLOUDFLARE_URL, json={"prompt": prompt, "size": size})
@@ -91,7 +91,7 @@ async def generate_image(prompt: str, size: str = "1520x1080") -> str:
         logger.warning(f"⚠️ Image generation failed for prompt '{prompt}': {e}")
         return ""
 
-async def insert_images_into_script(script: str, size: str = "1520x1080") -> list:
+async def insert_images_into_script(script: str, size: str = "1220x1080") -> list:
     scene_pattern = re.compile(r'(\*\*(INT\.|EXT\.)[^\n\*]+\*\*|(?<!\*)\b(INT\.|EXT\.)[^\n]+)')
     scenes = scene_pattern.findall(script)
     scene_matches = [match[0] for match in scenes if match[0]]
