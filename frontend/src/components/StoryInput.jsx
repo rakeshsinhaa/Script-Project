@@ -57,9 +57,6 @@ const StoryInput = () => {
     <div className="max-w-3xl mx-auto space-y-2 p-6 bg-slate-500 rounded-2xl shadow-md">
       <h2 className="text-2xl text-center font-Doto text-white font-bold">Generate Story from Prompt</h2>
       <div className="space-y-6 pb-4 ">
-      <p className="text-white text-l text-center leading-relaxed font-Doto mx-auto w-fit typing-effect">
-          A long time ago, in a galaxy far, far away...
-      </p>
       </div>
       
       <textarea
