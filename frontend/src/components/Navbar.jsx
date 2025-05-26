@@ -32,23 +32,23 @@ const Navbar = () => {
     <motion.nav
       animate={controls}
       initial={{ y: "1.5rem" }}
-      className="fixed left-1/2 -translate-x-1/2 top-0 z-50 bg-purple-700 text-white px-6 py-4 rounded-3xl shadow-lg w-[90%] max-w-2xl"
+      className="fixed left-1/2 -translate-x-1/2 top-0 z-50 bg-slate-500 text-white px-6 py-4 rounded-3xl shadow-lg w-[90%] max-w-2xl"
     >
       <div className="flex items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center ">
           <img
             src="https://www.svgrepo.com/show/306805/storybook.svg"
             alt="Logo"
             className="w-8 h-8 invert"
           />
-          <span className="text-2xl font-bold">toryScript</span>
+          <span className="text-2xl font-Doto font-bold">toryScript</span>
         </Link>
 
         <div className="flex space-x-4">
-          <Link to="/" className="px-4 py-2 rounded-3xl font-bold hover:bg-white/20">
+          <Link to="/" className="px-4 py-2 font-Doto rounded-3xl font-bold hover:bg-white/20">
             Home
           </Link>
-          <Link to="/script-viewer" className="px-4 py-2 rounded-3xl font-bold hover:bg-white/30">
+          <Link to="/script-viewer" className="px-4 py-2 font-Doto rounded-3xl font-bold hover:bg-white/30">
             View Script
           </Link>
         </div>

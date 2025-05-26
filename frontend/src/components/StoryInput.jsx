@@ -54,39 +54,39 @@ const StoryInput = () => {
   if (loadingScript) return <LoadingSpinner message="Generating script..." />;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 p-6 bg-white rounded-2xl shadow-md">
-      <h2 className="text-2xl text-center font-bold">Generate Story from Prompt</h2>
+    <div className="max-w-3xl mx-auto space-y-6 p-6 bg-slate-500 rounded-2xl shadow-md">
+      <h2 className="text-2xl text-center font-Doto text-white font-bold">Generate Story from Prompt</h2>
 
       <textarea
         placeholder="Enter a short idea or theme..."
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        className="w-full h-48 p-4 border border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10"
+        className="w-full h-48 p-4 border bg-white border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-cyan-900 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10 font-Doto placeholder-slate-950"
       />
       <button
         onClick={handleGenerateStory}
-        className="bg-purple-600 text-white px-4 py-2 rounded-md"
+        className="bg-slate-800 font-Doto hover:bg-slate-700 text-white px-4 py-2 rounded-md"
       >
         Generate Story
       </button>
 
-      <h2 className="text-xl text-center font-bold mt-6">Story</h2>
+      <h2 className="text-2xl font-Doto text-center text-white font-bold mt-6">Story</h2>
       <textarea
         value={story}
         onChange={(e) => setStory(e.target.value)}
-        className="w-full h-48 p-4 border border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10"
+        className="w-full h-48 p-4 border bg-white border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-cyan-900 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10 font-Doto placeholder-slate-950"
         placeholder="Or write your own story here..."
       />
       <div className="flex gap-4 mt-2">
         <button
           onClick={() => download(story, "story.txt")}
-          className="bg-gray-700 text-white px-4 py-2 rounded-md"
+          className="bg-slate-800 font-Doto hover:bg-slate-700 text-white px-4 py-2 rounded-md"
         >
           Download Story
         </button>
         <button
           onClick={handleGenerateScript}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md"
+          className="bg-slate-800 font-Doto hover:bg-slate-700 text-white px-4 py-2 rounded-md"
         >
           Generate Script
         </button>

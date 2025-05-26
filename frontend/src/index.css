@@ -1,6 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Great+Vibes&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
-::-webkit-scrollbar{
-    width: 10px;
-}
+/* index.css */
 
+::-webkit-scrollbar {
+    background: #1E293B;
+    height: 8px;
+    width: 8px;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #D3D9D4;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+  
+
+@theme{
+    --font-Doto: "Doto", "sans-serif";
+}
