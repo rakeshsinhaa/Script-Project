@@ -37,7 +37,7 @@ const Navbar = () => {
       <div className="flex items-center justify-between">
         <Link to="/" className="flex items-center ">
           <img
-            src="https://www.svgrepo.com/show/306805/storybook.svg"
+            src="./storybook.svg"
             alt="Logo"
             className="w-8 h-8 invert"
           />

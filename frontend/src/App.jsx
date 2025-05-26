@@ -9,7 +9,7 @@ function App() {
     <Router>
       <ScrollToTop />
         <Navbar/>
-      <div className="in-h-[200vh] bg-slate-800 p-6 pt-32  px-4">
+      <div className="in-h-[200vh]  p-6 pt-32  px-4">
         <h1 className="text-4xl text-center font-Doto text-gray-200 font-bold mb-6">StoryScript Generator</h1>
         <Routes>
           <Route path="/" element={<StoryInput />} />

@@ -54,9 +54,14 @@ const StoryInput = () => {
   if (loadingScript) return <LoadingSpinner message="Generating script..." />;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 p-6 bg-slate-500 rounded-2xl shadow-md">
+    <div className="max-w-3xl mx-auto space-y-2 p-6 bg-slate-500 rounded-2xl shadow-md">
       <h2 className="text-2xl text-center font-Doto text-white font-bold">Generate Story from Prompt</h2>
-
+      <div className="space-y-6 pb-4 ">
+      <p className="text-white text-l text-center leading-relaxed font-Doto mx-auto w-fit typing-effect">
+          A long time ago, in a galaxy far, far away...
+      </p>
+      </div>
+      
       <textarea
         placeholder="Enter a short idea or theme..."
         value={prompt}
@@ -65,7 +70,7 @@ const StoryInput = () => {
       />
       <button
         onClick={handleGenerateStory}
-        className="bg-slate-800 font-Doto hover:bg-slate-700 text-white px-4 py-2 rounded-md"
+        className="bg-slate-700 font-Doto hover:bg-slate-600 text-white px-4 py-2 rounded-md"
       >
         Generate Story
       </button>
@@ -80,17 +85,18 @@ const StoryInput = () => {
       <div className="flex gap-4 mt-2">
         <button
           onClick={() => download(story, "story.txt")}
-          className="bg-slate-800 font-Doto hover:bg-slate-700 text-white px-4 py-2 rounded-md"
+          className="bg-slate-700 font-Doto hover:bg-slate-600 text-white px-4 py-2 rounded-md"
         >
           Download Story
         </button>
         <button
           onClick={handleGenerateScript}
-          className="bg-slate-800 font-Doto hover:bg-slate-700 text-white px-4 py-2 rounded-md"
+          className="bg-slate-700 font-Doto hover:bg-slate-600 text-white px-4 py-2 rounded-md"
         >
           Generate Script
         </button>
       </div>
+
 
       {error && <p className="text-red-500">{error}</p>}
     </div>
