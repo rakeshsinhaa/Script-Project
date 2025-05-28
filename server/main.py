@@ -59,13 +59,23 @@ class StoryRequest(BaseModel):
 
 # ----------------------- Utils -----------------------
 def clean_script_text(text: str) -> str:
+    # Remove any markdown and HTML tags first
     text = re.sub(r'\*\*|__|<[^>]+>', '', text)
     text = re.sub(r'\n{3,}', '\n\n', text)
-        # Bold scene headings (INT./EXT.) if not already bold
+
+    # Bold scene headings (INT./EXT./CUT TO:/FADE OUT:)
     text = re.sub(r'(?<!\*)\b(INT\.|EXT\.|CUT TO:|FADE OUT:)[^\n]+', lambda m: f"**{m.group(0).strip()}**", text)
 
-    # Optionally: Bold character names (usually uppercase on their own line)
+    # Bold scene numbers (SCENE 1, SCENE 2, etc.)
+    text = re.sub(r'(?<=\n)(SCENE\s+\d+)', r'**\1**', text, flags=re.IGNORECASE)
+
+    # Bold character names (usually all caps, 2+ chars)
     text = re.sub(r'(?<=\n)([A-Z][A-Z ]{2,})(?=\n)', r'**\1**', text)
+
+    # Wrap dialogues (lines following bold character names) in <small> tags
+    # This will make them appear smaller on the frontend
+    text = re.sub(r'\*\*([A-Z][A-Z ]{2,})\*\*\n([^\n]+)', r'**\1**\n<small>\2</small>', text)
+
     return text.strip()
 
 def extract_scene_descriptions(script: str) -> list:
@@ -107,7 +117,8 @@ async def insert_images_into_script(script: str, size: str = "1220x1080") -> lis
             result.append({"header": header, "text": text, "image_url": "", "image_prompt": ""})
         return result
 
-    selected = random.sample(scene_matches, min(5, len(scene_matches)))
+    MAX_IMAGES = 5
+    selected = random.sample(scene_matches, min(MAX_IMAGES, len(scene_matches)))
     scene_regex = re.compile(r'((?:\*\*)?(?:INT\.|EXT\.|CUT TO:|FADE OUT:)[^\n]*(?:\*\*)?)')
     parts = scene_regex.split(script)[1:]
     result = []
