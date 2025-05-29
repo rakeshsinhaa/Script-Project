@@ -63,7 +63,7 @@ const StoryInput = () => {
         placeholder="Enter a short idea or theme..."
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        className="w-full h-48 p-4 border bg-white border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-cyan-900 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10 font-Doto placeholder-slate-950"
+        className="w-full h-48 p-4 border bg-white border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-scroll hide-scrollbar focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-cyan-900 font-Doto "
       />
       <button
         onClick={handleGenerateStory}
@@ -76,7 +76,7 @@ const StoryInput = () => {
       <textarea
         value={story}
         onChange={(e) => setStory(e.target.value)}
-        className="w-full h-48 p-4 border bg-white border-gray-300 rounded-2xl shadow-sm resize-none overflow-y-auto focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-cyan-900 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-10 font-Doto placeholder-slate-950"
+        className="w-full h-48 p-4 border bg-white border-gray-300 rounded-2xl shadow-sm resize-none focus:outline-none focus:ring-2 focus:ring-cyan-900 focus:border-cyan-900 font-Doto overflow-y-scroll hide-scrollbar"
         placeholder="Or write your own story here..."
       />
       <div className="flex gap-4 mt-2">

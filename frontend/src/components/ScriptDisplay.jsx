@@ -60,7 +60,7 @@ const ScriptDisplay = ({ script, images = [] }) => {
   console.log("Processed scenes:", scenes); // Debug log
 
   return (
-    <div className="max-w-4xl mx-auto my-8 p-6 bg-gray-100 rounded-2xl shadow-md space-y-8">
+    <div className="max-w-4xl mx-auto my-8 p-6 rounded-2xl shadow-md space-y-8">
       <h2 className="text-2xl font-bold mb-4 text-gray-700">Generated Script</h2>
 
       {scenes.length === 0 ? (
