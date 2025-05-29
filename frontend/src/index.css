@@ -1,18 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Great+Vibes&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
+/* Font & Colour*/
+@theme{
+  --font-Doto: "Doto", "sans-serif";
+  
+  --color-1midnight-blue: #1E2A38; 
+  --color-1slate-gray: #708090;
+  --color-1space-gray: #333333;
+  --color-1electric-indico: #6C63FF;
+  --color-1light-gray: #D3D3D3;
+
+}
 
 /* background */
 @keyframes moveStars {
     0% {
       background-position: 0 0;
-      background-color: #1b2533;
+      /* background-color: #1b2533; */
     }
     50% {
-      background-color: #202d3c;
+      /* background-color: #202d3c; */
     }
     100% {
       background-position: 1000px 1000px;
-      background-color: #1b2533;
+      /* background-color: #1b2533; */
     }
   }
   
@@ -20,7 +31,7 @@
     background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
     background-repeat: repeat;
     background-size: 200px 200px;
-    background-color: #1b2533;
+    background-color: #1E2A38;
     animation: moveStars 60s linear infinite;
   }
 /* scorll bar */
@@ -37,10 +48,6 @@
     background: transparent;
 }
   
-/* Font */
-@theme{
-    --font-Doto: "Doto", "sans-serif";
-}
 
 /* text animation */
 @keyframes typing {

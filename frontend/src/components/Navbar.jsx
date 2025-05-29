@@ -48,7 +48,7 @@ const Navbar = () => {
           <Link to="/" className="px-4 py-2 font-Doto rounded-3xl font-bold hover:bg-white/20">
             Home
           </Link>
-          <Link to="/script-viewer" className="px-4 py-2 font-Doto rounded-3xl font-bold hover:bg-white/30">
+          <Link to="/ScriptViewer" className="px-4 py-2 font-Doto rounded-3xl font-bold hover:bg-white/30">
             View Script
           </Link>
         </div>
