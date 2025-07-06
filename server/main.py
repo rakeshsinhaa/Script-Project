@@ -4,6 +4,9 @@ import logging
 import random
 import httpx
 from fastapi import FastAPI, HTTPException
+from weasyprint import HTML
+import tempfile
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -82,7 +85,7 @@ def extract_scene_descriptions(script: str) -> list:
     scene_pattern = re.compile(r'\*\*(INT\.|EXT\.)[^\*]+\*\*')
     return scene_pattern.findall(script)
 
-async def generate_image(prompt: str, size: str = "1220x1080") -> str:
+async def generate_image(prompt: str, size: str = "1280x720") -> str:
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(CLOUDFLARE_URL, json={"prompt": prompt, "size": size})
@@ -101,7 +104,7 @@ async def generate_image(prompt: str, size: str = "1220x1080") -> str:
         logger.warning(f"⚠️ Image generation failed for prompt '{prompt}': {e}")
         return ""
 
-async def insert_images_into_script(script: str, size: str = "1220x1080") -> list:
+async def insert_images_into_script(script: str, size: str = "1280x720") -> list:
     # Find all scene headers
     scene_regex = re.compile(r'((?:\*\*)?(?:INT\.|EXT\.|CUT TO:|FADE OUT:)[^\n]*(?:\*\*)?)')
     parts = scene_regex.split(script)[1:]
@@ -165,6 +168,50 @@ async def insert_images_into_script(script: str, size: str = "1220x1080") -> lis
     logger.info(f"Final result: Generated {images_generated} images for {len(result)} total scenes")
     return result
 
+def convert_script_to_html(script_data: list) -> str:
+    """Converts the script (list of scenes with images/text) into HTML format"""
+    html = "<h1 style='text-align:center;'>Movie Script</h1><hr>"
+    for scene in script_data:
+        html += f"<h2>{scene['header']}</h2>"
+        if scene['image_url']:
+            html += f"<img src='{scene['image_url']}' style='width:100%; margin:10px 0;'/>"
+        html += f"<p>{scene['text'].replace('<small>', '<i>').replace('</small>', '</i>')}</p><hr>"
+    return html
+
+def save_script_as_pdf(script_html: str, filename: str = "script.pdf") -> str:
+    temp_dir = tempfile.gettempdir()
+    file_path = os.path.join(temp_dir, filename)
+
+    full_html = f"""
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                margin: 40px;
+                font-size: 14px;
+                line-height: 1.6;
+            }}
+            img {{
+                max-width: 100%;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }}
+            h2 {{
+                color: #222;
+            }}
+        </style>
+    </head>
+    <body>
+        {script_html}
+    </body>
+    </html>
+    """
+
+    HTML(string=full_html).write_pdf(file_path)
+    return file_path
+
+
 # ----------------------- Routes -----------------------
 @app.post("/api/generate-story")
 async def generate_story(data: PromptRequest):
@@ -213,6 +260,41 @@ async def generate_script(data: StoryRequest):
 
     except Exception as e:
         logger.exception("❌ Error generating script.")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/api/download-pdf")
+async def download_pdf(data: StoryRequest):
+    try:
+        logger.info(f"📥 PDF download requested for story: {data.storyline[:100]}...")
+
+        # Generate script content
+        prompt = (
+            "Convert the following story into a fully formatted movie script. "
+            "Use left-aligned text only. Bold all scene headings (INT./EXT.), character names, and transitions (e.g., CUT TO:). "
+            "Define the scene numbers with scenes (e.g., SCENE 1). "
+            "Dialogue must appear under bold character names. Use present tense for descriptions:\n"
+            f"{data.storyline}"
+        )
+        response = model.generate_content(prompt)
+        if not response.text:
+            raise HTTPException(status_code=500, detail="Model returned no text.")
+
+        cleaned = clean_script_text(response.text)
+        script_title = "Script Title"
+        match = re.search(r'(Title|Story|Name):? (.+)', data.storyline, re.IGNORECASE)
+        if match:
+            script_title = match.group(2).strip().title()
+        full_script = f"**TITLE: {script_title}**\n\n{cleaned}"
+
+        script_data = await insert_images_into_script(full_script)
+        script_html = convert_script_to_html(script_data)
+        pdf_path = save_script_as_pdf(script_html)
+
+        logger.info(f"📄 PDF ready: {pdf_path}")
+        return FileResponse(pdf_path, media_type="application/pdf", filename="movie_script.pdf")
+
+    except Exception as e:
+        logger.exception("❌ Error generating PDF.")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ----------------------- Run Server -----------------------
