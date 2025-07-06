@@ -41,7 +41,7 @@ const Navbar = () => {
             alt="Logo"
             className="w-8 h-8 invert"
           />
-          <span className="text-2xl font-Doto font-bold">toryScript</span>
+          <span className="text-2xl font-Doto font-bold">criptStory</span>
         </Link>
 
         <div className="flex space-x-4">

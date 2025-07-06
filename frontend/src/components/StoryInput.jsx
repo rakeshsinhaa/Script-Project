@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LoadingSpinner from "./LoadingSpinner";  // <-- ADDED import
 import axios from "axios";
 
-const StoryInput = () => {
+const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
   const [prompt, setPrompt] = useState("");
   const [story, setStory] = useState("");
-  const [loadingStory, setLoadingStory] = useState(false);
-  const [loadingScript, setLoadingScript] = useState(false);
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -15,29 +12,30 @@ const StoryInput = () => {
   const handleGenerateStory = async () => {
     if (!prompt.trim()) return setError("Enter a prompt to generate story.");
     setError("");
-    setLoadingStory(true);  // <-- SET loadingStory to true
+    setLoadingMessage("Generating story...");
+    setGlobalLoading(true);
     try {
       const res = await axios.post("http://localhost:8000/api/generate-story", { prompt });
       setStory(res.data.story);
     } catch (err) {
       setError("Error generating story.");
     } finally {
-      setLoadingStory(false); // <-- SET loadingStory to false
+      setGlobalLoading(false);
     }
   };
 
   const handleGenerateScript = async () => {
     if (!story.trim()) return setError("Story cannot be empty.");
     setError("");
-    setLoadingScript(true);  // <-- SET loadingScript to true
+    setLoadingMessage("Generating script...");
+    setGlobalLoading(true);
     try {
       const res = await axios.post("http://localhost:8000/api/generate-script", { storyline: story });
-      const result = res.data.script;
-      navigate("/script-viewer", { state: { script: result } });
+      navigate("/script-viewer", { state: { script: res.data.script } });
     } catch (err) {
       setError("Error generating script.");
     } finally {
-      setLoadingScript(false); // <-- SET loadingScript to false
+      setGlobalLoading(false);
     }
   };
 
@@ -49,16 +47,10 @@ const StoryInput = () => {
     a.click();
   };
 
-  // <-- ADDED full-page loader while waiting for API
-  if (loadingStory) return <LoadingSpinner message="Generating story..." />;
-  if (loadingScript) return <LoadingSpinner message="Generating script..." />;
-
   return (
     <div className="max-w-3xl mx-auto space-y-2 p-6 bg-slate-500 rounded-2xl shadow-md">
       <h2 className="text-2xl text-center font-Doto text-white font-bold">Generate Story from Prompt</h2>
-      <div className="space-y-6 pb-4 ">
-      </div>
-      
+
       <textarea
         placeholder="Enter a short idea or theme..."
         value={prompt}
@@ -93,7 +85,6 @@ const StoryInput = () => {
           Generate Script
         </button>
       </div>
-
 
       {error && <p className="text-red-500">{error}</p>}
     </div>
