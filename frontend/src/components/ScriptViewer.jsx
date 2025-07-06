@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, Component, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import html2pdf from "html2pdf.js";
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
@@ -294,22 +295,49 @@ const ScriptViewer = () => {
     ));
   };
 
-  // Download logic for plain text version of the script
-  const handleDownload = (format = 'txt') => {
-    const text = Array.isArray(script)
-      ? script.map((scene) => scene.text).join("\n\n")
-      : script.replace(/!\[.*?\]\([^\)]+\)/g, "").trim();
+  // Fixed download logic for plain text version of the script
+  const handleDownload = () => {
+    let text = '';
+    
+    if (Array.isArray(script)) {
+      // Handle array of scene objects
+      text = script.map((scene) => scene.text).join("\n\n");
+    } else {
+      // Handle string script - clean it and format it properly
+      text = script.replace(/!\[.*?\]\([^\)]+\)/g, "").trim();
+      // Remove markdown formatting for plain text
+      text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+    }
 
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `script.${format}`;
+    a.href = url;
+    a.download = "script.txt";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handlePrint = () => {
     window.print();
   };
+
+  const triggerPDFDownload = async (includeImages) => {
+    const element = document.querySelector(".script-content"); // the content to export
+
+    const opt = {
+      margin:       0.5,
+      filename:     `script-${includeImages ? "with-images" : "no-images"}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
+
 
   return (
     <div className="min-h-screen">
@@ -367,17 +395,26 @@ const ScriptViewer = () => {
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-200">
             <button
-              onClick={() => handleDownload('txt')}
-              className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+              onClick={handleDownload}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
-               Download Script
+              📄 Download TXT
             </button>
+
             <button
-              onClick={handlePrint}
-              className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+              onClick={() => triggerPDFDownload(false)}
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg"
             >
-              Print
+              📄 PDF (No Images)
             </button>
+
+            <button
+              onClick={() => triggerPDFDownload(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            >
+              🖼️ PDF (With Images)
+            </button>
+            
             <button
               onClick={() => navigate(-1)}
               className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
@@ -425,13 +462,13 @@ const ScriptViewer = () => {
       </div>
 
       {/* Print styles */}
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{__html: `
         @media print {
           .no-print { display: none !important; }
           body { background: white !important; }
           .script-content { box-shadow: none !important; }
         }
-      `}</style>
+      `}} />
     </div>
   );
 };
