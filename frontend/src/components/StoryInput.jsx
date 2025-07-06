@@ -6,6 +6,8 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
   const [prompt, setPrompt] = useState("");
   const [story, setStory] = useState("");
   const [error, setError] = useState("");
+  const [generateImages, setGenerateImages] = useState(true); 
+
 
   const navigate = useNavigate();
 
@@ -26,11 +28,17 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
 
   const handleGenerateScript = async () => {
     if (!story.trim()) return setError("Story cannot be empty.");
+    
     setError("");
     setLoadingMessage("Generating script...");
     setGlobalLoading(true);
+
     try {
-      const res = await axios.post("http://localhost:8000/api/generate-script", { storyline: story });
+      const res = await axios.post("http://localhost:8000/api/generate-script", {
+        storyline: story,
+        generate_images: generateImages, 
+      });
+
       navigate("/script-viewer", { state: { script: res.data.script } });
     } catch (err) {
       setError("Error generating script.");
