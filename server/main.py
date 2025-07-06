@@ -101,7 +101,7 @@ async def generate_image(prompt: str, size: str = "1220x1080") -> str:
         logger.warning(f"⚠️ Image generation failed for prompt '{prompt}': {e}")
         return ""
 
-async def insert_images_into_script(script: str, size: str = "1280x720") -> list:
+async def insert_images_into_script(script: str, size: str = "1220x720") -> list:
     scene_pattern = re.compile(r'(\*\*(INT\.|EXT\.)[^\n\*]+\*\*|(?<!\*)\b(INT\.|EXT\.)[^\n]+)')
     scenes = scene_pattern.findall(script)
     scene_matches = [match[0] for match in scenes if match[0]]
@@ -117,24 +117,44 @@ async def insert_images_into_script(script: str, size: str = "1280x720") -> list
             result.append({"header": header, "text": text, "image_url": "", "image_prompt": ""})
         return result
 
+    # Select maximum 5 random scenes for image generation
     MAX_IMAGES = 5
-    selected = random.sample(scene_matches, min(MAX_IMAGES, len(scene_matches)))
-    scene_regex = re.compile(r'((?:\*\*)?(?:INT\.|EXT\.|CUT TO:|FADE OUT:)[^\n]*(?:\*\*)?)')
-    parts = scene_regex.split(script)[1:]
+    selected_scenes = random.sample(scene_headers, min(MAX_IMAGES, len(scene_headers)))
+    selected_indices = {scene[0] for scene in selected_scenes}
+    
+    logger.info(f"Selected {len(selected_scenes)} scenes for image generation out of {len(scene_headers)} total scenes")
+    
+    # Process all parts and generate images for selected scenes
     result = []
-
+    images_generated = 0
+    
     for i in range(0, len(parts), 2):
         header = parts[i].strip()
         text = parts[i + 1].strip() if i + 1 < len(parts) else ""
         image_url = ""
         image_prompt = ""
-        if header in selected:
+        
+        # Generate image only if this scene index is selected and we haven't reached the limit
+        if i in selected_indices and images_generated < MAX_IMAGES:
+            # Clean the header for image prompt
             clean_prompt = re.sub(r'\*\*', '', header).strip()
+            logger.info(f"Generating image for scene: {clean_prompt}")
             image_url = await generate_image(clean_prompt, size)
-            image_prompt = clean_prompt if image_url else ""
-        result.append({"header": header, "text": text, "image_url": image_url, "image_prompt": image_prompt})
+            if image_url:
+                image_prompt = clean_prompt
+                images_generated += 1
+                logger.info(f"Successfully generated image {images_generated}/{MAX_IMAGES}")
+            else:
+                logger.warning(f"Failed to generate image for scene: {clean_prompt}")
+        
+        result.append({
+            "header": header, 
+            "text": text, 
+            "image_url": image_url, 
+            "image_prompt": image_prompt
+        })
 
-    logger.info(f"Final script with images:\n{result[:2]}...")
+    logger.info(f"Final result: Generated {images_generated} images for {len(result)} total scenes")
     return result
 
 # ----------------------- Routes -----------------------
@@ -180,7 +200,7 @@ async def generate_script(data: StoryRequest):
         full_script = f"**TITLE: {script_title}**\n\n{cleaned}"
 
         final_script = await insert_images_into_script(full_script)
-        logger.info(f"📜 Final script sent to frontend:\n{final_script[:2]}...")
+        logger.info(f"📜 Final script sent to frontend with {sum(1 for scene in final_script if scene['image_url'])} images")
         return {"script": final_script}
 
     except Exception as e:
