@@ -101,7 +101,7 @@ async def generate_image(prompt: str, size: str = "1220x1080") -> str:
         logger.warning(f"⚠️ Image generation failed for prompt '{prompt}': {e}")
         return ""
 
-async def insert_images_into_script(script: str, size: str = "1220x1080") -> list:
+async def insert_images_into_script(script: str, size: str = "1280x720") -> list:
     scene_pattern = re.compile(r'(\*\*(INT\.|EXT\.)[^\n\*]+\*\*|(?<!\*)\b(INT\.|EXT\.)[^\n]+)')
     scenes = scene_pattern.findall(script)
     scene_matches = [match[0] for match in scenes if match[0]]

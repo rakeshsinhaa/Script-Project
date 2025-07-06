@@ -370,13 +370,13 @@ const ScriptViewer = () => {
               onClick={() => handleDownload('txt')}
               className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
-              📄 Download Script
+               Download Script
             </button>
             <button
               onClick={handlePrint}
               className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
-              🖨️ Print
+              Print
             </button>
             <button
               onClick={() => navigate(-1)}
@@ -404,7 +404,7 @@ const ScriptViewer = () => {
                     <img
                       src={scene.image_url}
                       alt={`Scene ${index + 1}`}
-                      className="w-full rounded-lg shadow-lg transition-transform duration-300 group-hover:scale-105"
+                      className="w-full rounded-lg shadow-lg transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg transition-all duration-300"></div>
                   </div>
