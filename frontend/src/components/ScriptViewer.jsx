@@ -1,7 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, Component, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import html2pdf from "html2pdf.js";
+import domtoimage from 'dom-to-image';
+import jsPDF from 'jspdf';
+
+
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
@@ -297,46 +300,120 @@ const ScriptViewer = () => {
 
   // Fixed download logic for plain text version of the script
   const handleDownload = () => {
-    let text = '';
-    
-    if (Array.isArray(script)) {
-      // Handle array of scene objects
-      text = script.map((scene) => scene.text).join("\n\n");
-    } else {
-      // Handle string script - clean it and format it properly
-      text = script.replace(/!\[.*?\]\([^\)]+\)/g, "").trim();
-      // Remove markdown formatting for plain text
-      text = text.replace(/\*\*(.*?)\*\*/g, '$1');
-    }
+    try {
+      let text = '';
+      
+      if (Array.isArray(script)) {
+        // Handle array of scene objects
+        text = script.map((scene) => scene.text || '').join("\n\n");
+      } else {
+        // Handle string script - clean it and format it properly
+        text = script.replace(/!\[.*?\]\([^\)]+\)/g, "").trim();
+        // Remove markdown formatting for plain text
+        text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+      }
 
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "script.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      // Ensure we have some text to download
+      if (!text || text.trim() === '') {
+        alert('No script content to download');
+        return;
+      }
+
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `script_${new Date().toISOString().slice(0, 10)}.txt`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Download failed. Please try again.');
+    }
   };
 
   const handlePrint = () => {
     window.print();
   };
 
-  const triggerPDFDownload = async (includeImages) => {
-    const element = document.querySelector(".script-content"); // the content to export
+const triggerPDFDownload = async (includeImages) => {
+  const originalShowImages = showImages;
 
-    const opt = {
-      margin:       0.5,
-      filename:     `script-${includeImages ? "with-images" : "no-images"}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  if (!includeImages) {
+    setShowImages(false);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  const node = document.querySelector(".script-content");
+  if (!node) {
+    alert("Unable to generate PDF. Content not found.");
+    return;
+  }
+
+  try {
+    const dataUrl = await domtoimage.toPng(node);
+
+    const img = new Image();
+    img.src = dataUrl;
+
+    img.onload = () => {
+      const pdf = new jsPDF("p", "pt", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgWidth = pageWidth;
+      const imgHeight = (img.height * pageWidth) / img.width;
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const totalPages = Math.ceil(imgHeight / pageHeight);
+
+      for (let i = 0; i < totalPages; i++) {
+        const startY = (img.height / totalPages) * i;
+        const sliceHeight = (img.height / totalPages);
+
+        canvas.width = img.width;
+        canvas.height = sliceHeight;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+          img,
+          0,
+          startY,
+          img.width,
+          sliceHeight,
+          0,
+          0,
+          img.width,
+          sliceHeight
+        );
+
+        const pageData = canvas.toDataURL("image/png");
+
+        if (i > 0) pdf.addPage();
+        pdf.addImage(pageData, "PNG", 0, 0, pageWidth, pageHeight);
+      }
+
+      pdf.save(`script-${includeImages ? "with-images" : "no-images"}.pdf`);
     };
-
-    html2pdf().set(opt).from(element).save();
-  };
+  } catch (err) {
+    console.error("PDF generation failed:", err);
+    alert("Failed to generate PDF. Please try again.");
+  } finally {
+    if (!includeImages) {
+      setShowImages(originalShowImages);
+    }
+  }
+};
 
 
   return (
