@@ -53,11 +53,12 @@ uvicorn main:app --reload
 GEMINI_API_KEY=your-api-key
 CLOUDFLARE_URL=add-url
 ```
-```bash
 ### 3. Start the Frontend
+```bash
 cd frontend
 npm install
 npm start
 
 .env file content for frontend:
 VITE_API_URL=http://localhost:8000
+```
