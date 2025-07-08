@@ -38,7 +38,7 @@ This is a full-stack project where users can input a simple prompt or storyline,
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/script-story.git
+git clone https://github.com/rakeshsinhaa/Script-Story.git
 ```
 
 ### 2. Start the Backend
