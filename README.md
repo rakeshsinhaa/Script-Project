@@ -37,9 +37,12 @@ This is a full-stack project where users can input a simple prompt or storyline,
 ## ⚙️ How to Run the Project
 
 ### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/your-username/script-story.git
+```
+
+### 2. Start the Backend
+```bash
 cd script-story
 cd backend
 pip install -r requirements.txt
@@ -48,8 +51,10 @@ uvicorn main:app --reload
 
 .env file content for backend:
 GEMINI_API_KEY=your-api-key
-
-Start the Frontend
+CLOUDFLARE_URL=add-url
+```
+```bash
+### 3. Start the Frontend
 cd frontend
 npm install
 npm start
