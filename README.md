@@ -1,6 +1,6 @@
 # 🎬 Script Story Generator
 
-This is a full-stack project where users can input a simple prompt or storyline, and the app generates a full story and a screenplay script from it. The script is broken down into scenes and can also include AI-generated images. Users can download the script as a PDF (with or without images) or as a plain text file.
+In this project users can input a simple prompt or storyline, and the app generates a full story and a screenplay script from it. The script is broken down into scenes and can also include AI-generated images. Users can download the script as a PDF (with or without images) or as a plain text file.
 
 ## 🚀 Features
 
