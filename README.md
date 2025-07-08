@@ -21,7 +21,6 @@ This is a full-stack project where users can input a simple prompt or storyline,
 - React.js
 - React Router
 - Material UI
-- Axios
 - React Markdown
 - FileSaver.js
 - React-to-PDF
@@ -30,9 +29,30 @@ This is a full-stack project where users can input a simple prompt or storyline,
 
 - FastAPI
 - Pydantic
-- OpenAI or Google Generative AI
+- GEMINI AI
 - CORS Middleware
 - Uvicorn
 
-## 📂 Folder Structure
 
+## ⚙️ How to Run the Project
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/script-story.git
+cd script-story
+cd backend
+pip install -r requirements.txt
+# Create a .env file and add your API key
+uvicorn main:app --reload
+
+.env file content for backend:
+GEMINI_API_KEY=your-api-key
+
+Start the Frontend
+cd frontend
+npm install
+npm start
+
+.env file content for frontend:
+VITE_API_URL=http://localhost:8000
