@@ -62,6 +62,7 @@ class PromptRequest(BaseModel):
 
 class StoryRequest(BaseModel):
     storyline: str
+    generate_images: bool=True
 
 # ----------------------- Utils -----------------------
 def clean_script_text(text: str) -> str:
@@ -219,7 +220,25 @@ async def generate_script(data: StoryRequest):
             script_title = match.group(2).strip().title()
         full_script = f"**TITLE: {script_title}**\n\n{cleaned}"
 
-        final_script = await insert_images_into_script(full_script)
+        if data.generate_images:
+            final_script = await insert_images_into_script(full_script)
+        else:
+            # Skip image generation; return empty image fields
+            logger.info("🖼️ Skipping image generation as requested.")
+            scene_regex = re.compile(r'((?:\*\*)?(?:INT\.|EXT\.|CUT TO:|FADE OUT:)[^\n]*(?:\*\*)?)')
+            parts = scene_regex.split(full_script)[1:]
+
+            final_script = []
+            for i in range(0, len(parts), 2):
+                header = parts[i].strip()
+                text = parts[i + 1].strip() if i + 1 < len(parts) else ""
+                final_script.append({
+                    "header": header,
+                    "text": text,
+                    "image_url": "",
+                    "image_prompt": ""
+                })
+
         logger.info(f"📜 Final script sent to frontend with {sum(1 for scene in final_script if scene['image_url'])} images")
         return {"script": final_script}
 
