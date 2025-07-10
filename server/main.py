@@ -45,11 +45,15 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # <-- allow all for testing
-    allow_credentials=False,  # <-- must be False when allow_origins = ["*"]
+    allow_origins=[
+        "https://script-project.vercel.app",
+        "http://localhost:3000"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # ----------------------- Schemas -----------------------
 class PromptRequest(BaseModel):
