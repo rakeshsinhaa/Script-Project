@@ -15,7 +15,7 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
     setLoadingMessage("Generating story...");
     setGlobalLoading(true);
     try {
-      const res = await axios.post("/api/generate-story", { prompt });
+      const res = await api.post("/api/generate-story", { prompt });
       setStory(res.data.story);
     } catch (err) {
       setError("Error generating story.");
