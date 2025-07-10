@@ -43,6 +43,11 @@ except Exception as e:
 # ----------------------- FastAPI Setup -----------------------
 app = FastAPI()
 
+origins = [
+    "https://script-project.vercel.app/",
+    "http://localhost:3000",  # Optional: for local development
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
