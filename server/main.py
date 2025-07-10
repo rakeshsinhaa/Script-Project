@@ -176,14 +176,20 @@ async def insert_images_into_script(script: str, size: str = "1280x720") -> list
 async def generate_story(data: PromptRequest):
     try:
         logger.info(f"📩 Received story prompt: {data.prompt[:100]}...")
+
         response = model.generate_content(data.prompt)
+
         if not response.text:
+            logger.warning("⚠️ Gemini returned empty text.")
             raise HTTPException(status_code=500, detail="Model returned no text.")
+
         cleaned = clean_script_text(response.text)
+        logger.info("✅ Story generated and cleaned successfully.")
         return {"story": cleaned}
+
     except Exception as e:
         logger.exception("❌ Error generating story.")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.post("/api/generate-script")
 async def generate_script(data: StoryRequest):
