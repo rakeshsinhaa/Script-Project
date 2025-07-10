@@ -20,7 +20,6 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
     } catch (err) {
       console.error("Story generation error:", err.response?.data || err.message);
       setError("Error generating story.");
-    }
     } finally {
       setGlobalLoading(false);
     }
