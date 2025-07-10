@@ -38,19 +38,11 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
     setGlobalLoading(true);
 
     try {
-<<<<<<< HEAD
       const res = await axios.post(
         "https://script-backend-z14m.onrender.com/api/generate-script",
         { storyline: story }
       );
-=======
-      const res = await axios.post("http://localhost:8000/api/generate-script", {
-        storyline: story,
-        generate_images: generateImages, 
-      });
 
-
->>>>>>> 33b2c9d4b607d6fc5ba5fe6ef8d37def8ef3d21c
       navigate("/script-viewer", { state: { script: res.data.script } });
     } catch (err) {
       console.error("Script generation error:", err.response?.data || err.message);
