@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
   const [prompt, setPrompt] = useState("");
@@ -17,7 +17,7 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
     setLoadingMessage("Generating story...");
     setGlobalLoading(true);
     try {
-      const res = await axios.post("http://localhost:8000/api/generate-story", { prompt });
+      const res = await axios.post("/api/generate-story", { prompt });
       setStory(res.data.story);
     } catch (err) {
       setError("Error generating story.");
@@ -38,6 +38,7 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
         storyline: story,
         generate_images: generateImages, 
       });
+
 
       navigate("/script-viewer", { state: { script: res.data.script } });
     } catch (err) {
