@@ -1,6 +1,6 @@
+import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api";
 
 const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
   const [prompt, setPrompt] = useState("");
@@ -15,7 +15,10 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
     setLoadingMessage("Generating story...");
     setGlobalLoading(true);
     try {
-      const res = await api.post("/api/generate-story", { prompt });
+      const res = await axios.post(
+        "https://script-backend-z14m.onrender.com/api/generate-story",
+        { prompt }
+      );
       setStory(res.data.story);
     } catch (err) {
       console.error("Story generation error:", err.response?.data || err.message);
@@ -31,10 +34,13 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
     setLoadingMessage("Generating script...");
     setGlobalLoading(true);
     try {
-      const res = await api.post("/api/generate-script", { storyline: story });
-
+      const res = await axios.post(
+        "https://script-backend-z14m.onrender.com/api/generate-script",
+        { storyline: story }
+      );
       navigate("/script-viewer", { state: { script: res.data.script } });
     } catch (err) {
+      console.error("Script generation error:", err.response?.data || err.message);
       setError("Error generating script.");
     } finally {
       setGlobalLoading(false);
@@ -51,7 +57,9 @@ const StoryInput = ({ setGlobalLoading, setLoadingMessage }) => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-2 p-6 bg-slate-500 rounded-2xl shadow-md">
-      <h2 className="text-2xl text-center font-Doto text-white font-bold">Generate Story from Prompt</h2>
+      <h2 className="text-2xl text-center font-Doto text-white font-bold">
+        Generate Story from Prompt
+      </h2>
 
       <textarea
         placeholder="Enter a short idea or theme..."
