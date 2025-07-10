@@ -23,10 +23,11 @@ function App() {
       )}
 
       <div className="min-h-[125vh] p-6 pt-32 px-4">
-        <h1 className="text-4xl text-center font-Doto text-gray-200 font-bold mb-1">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl text-center font-Doto text-gray-200 font-bold mb-2">
           ScriptStory Generator
         </h1>
-        <p className="text-white text-l text-center leading-relaxed font-Doto mb-6 mx-auto w-fit typing-effect">
+
+        <p className="text-sm sm:text-base md:text-lg text-center text-white leading-relaxed font-Doto mb-6 mx-auto max-w-xl px-4 typing-effect">
           A long time ago, in a galaxy far, far away...
         </p>
         <Routes>
